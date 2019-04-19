@@ -55,23 +55,23 @@ var PlaidLink = function (_Component) {
   }, {
     key: 'onScriptLoaded',
     value: function onScriptLoaded() {
-      this.setState({
-        disabledButton: false,
-        linkHandler: window.Plaid.create({
-          apiVersion: this.props.apiVersion,
-          clientName: this.props.clientName,
-          env: this.props.env,
-          key: this.props.publicKey,
-          onExit: this.props.onExit,
-          onLoad: this.handleLinkOnLoad,
-          onEvent: this.onEvent,
-          onSuccess: this.props.onSuccess,
-          product: this.props.product,
-          selectAccount: this.props.selectAccount,
-          token: this.props.token,
-          webhook: this.props.webhook
-        })
+      this.linkHandler = window.Plaid.create({
+        apiVersion: this.props.apiVersion,
+        clientName: this.props.clientName,
+        env: this.props.env,
+        key: this.props.publicKey,
+        user: this.props.user,
+        onExit: this.props.onExit,
+        onLoad: this.handleLinkOnLoad,
+        onEvent: this.props.onEvent,
+        onSuccess: this.props.onSuccess,
+        product: this.props.product,
+        selectAccount: this.props.selectAccount,
+        token: this.props.token,
+        webhook: this.props.webhook
       });
+
+      this.setState({ disabledButton: false });
     }
   }, {
     key: 'handleLinkOnLoad',
@@ -83,20 +83,20 @@ var PlaidLink = function (_Component) {
     }
   }, {
     key: 'handleOnClick',
-    value: function handleOnClick() {
+    value: function handleOnClick(event) {
       if (this.props.onClick != null) {
-        this.props.onClick();
+        this.props.onClick(event);
       }
       var institution = this.props.institution || null;
-      if (this.state.linkHandler) {
-        this.state.linkHandler.open(institution);
+      if (this.linkHandler) {
+        this.linkHandler.open(institution);
       }
     }
   }, {
     key: 'exit',
     value: function exit(configurationObject) {
-      if (this.state.linkHandler) {
-        this.state.linkHandler.exit(configurationObject);
+      if (this.linkHandler) {
+        this.linkHandler.exit(configurationObject);
       }
     }
   }, {
@@ -161,12 +161,22 @@ PlaidLink.propTypes = {
   // auth, identity, income, transactions, assets
   product: _propTypes2.default.arrayOf(_propTypes2.default.oneOf(['connect', // legacy product name
   'info', // legacy product name
-  'auth', 'identity', 'income', 'transactions', 'assets'])).isRequired,
+  'auth', 'identity', 'income', 'transactions', 'assets', 'holdings'])).isRequired,
 
   // Specify an existing user's public token to launch Link in update mode.
   // This will cause Link to open directly to the authentication step for
   // that user's institution.
   token: _propTypes2.default.string,
+
+  // Specify a user object to enable all Auth features. Reach out to your
+  // account manager or integrations@plaid.com to get enabled. See the Auth
+  // [https://plaid.com/docs#auth] docs for integration details.
+  user: _propTypes2.default.shape({
+    // Your user's legal first and last name
+    legalName: _propTypes2.default.string,
+    // Your user's associated email address
+    emailAddress: _propTypes2.default.string
+  }),
 
   // Set to true to launch Link with the 'Select Account' pane enabled.
   // Allows users to select an individual account once they've authenticated
